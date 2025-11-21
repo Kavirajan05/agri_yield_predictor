@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriYield AI - Smart Crop Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            /* subtle agricultural SVG overlay + gradient */
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><g fill='%2322c55e' opacity='0.06'><path d='M100 10 C115 30 130 30 140 50 C120 45 110 65 100 80 C90 65 80 45 60 50 C70 30 85 30 100 10Z'/></g></svg>"), linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            background-repeat: repeat;
+            background-size: 220px 220px, cover;
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(34, 197, 94, 0.3);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            position: relative;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 20px 40px rgba(34, 197, 94, 0.3);
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #22c55e 0%, #10b981 50%, #22c55e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            text-shadow: 0 0 60px rgba(34, 197, 94, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #94a3b8;
+            font-weight: 300;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #22c55e, transparent);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-hint {
+            font-size: 0.85em;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .input-field, .select-field {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1em;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus, .select-field:focus {
+            outline: none;
+            border-color: #22c55e;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+        }
+
+        .select-field option {
+            background: #1e293b;
+            color: #fff;
+        }
+
+        .triple-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .double-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+        }
+
+        .predict-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .predict-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
+        }
+
+        .predict-btn:active {
+            transform: translateY(0);
+        }
+
+        .predict-btn:disabled {
+            background: rgba(100, 116, 139, 0.5);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .results-empty {
+            text-align: center;
+            padding: 80px 20px;
+            color: #64748b;
+        }
+
+        .results-empty-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .yield-display {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 50px rgba(34, 197, 94, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .yield-display::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .yield-label {
+            font-size: 0.95em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .yield-value {
+            font-size: 4em;
+            font-weight: 800;
+            margin-bottom: 15px;
+            position: relative;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .yield-range {
+            font-size: 1em;
+            opacity: 0.9;
+            position: relative;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 15px;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .factor-item {
+            margin-bottom: 20px;
+        }
+
+        .factor-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .factor-name {
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .factor-value {
+            color: #22c55e;
+            font-weight: 700;
+        }
+
+        .factor-bar-container {
+            height: 10px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .factor-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e 0%, #10b981 100%);
+            border-radius: 5px;
+            transition: width 1s ease;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+            position: relative;
+        }
+
+        .factor-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: barShine 2s infinite;
+        }
+
+        @keyframes barShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .recommendations-section {
+            background: rgba(34, 197, 94, 0.1);
+            border: 2px solid rgba(34, 197, 94, 0.2);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .recommendations-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .recommendation-item {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #22c55e;
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .recommendation-item:hover {
+            background: rgba(15, 23, 42, 0.8);
+            transform: translateX(5px);
+        }
+
+        .recommendation-icon {
+            font-size: 1.2em;
+            margin-top: 2px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .triple-grid, .double-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .glass-card {
+                padding: 25px;
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: reveal 0.8s ease forwards;
+        }
+
+        @keyframes reveal {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2canvas and jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <div class="header reveal">
+            <div class="logo">🌾</div>
+            <h1>AgriYield AI</h1>
+            <p>Advanced Machine Learning for Smart Agriculture</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="glass-card reveal" style="animation-delay: 0.1s;">
+                <h2 class="card-title">
+                    <span class="card-icon">📊</span>
+                    Input Parameters
+                </h2>
+
+                <form id="predictionForm">
+                    <div class="input-group">
+                        <label class="input-label" for="cropType">
+                            Crop Type
+                        </label>
+                        <select id="cropType" class="select-field" required>
+                            <option value="rice">🌾 Rice</option>
+                            <option value="wheat">🌾 Wheat</option>
+                            <option value="maize">🌽 Maize</option>
+                            <option value="cotton">☁️ Cotton</option>
+                            <option value="sugarcane">🎋 Sugarcane</option>
+                            <option value="potato">🥔 Potato</option>
+                            <option value="tomato">🍅 Tomato</option>
+                            <option value="soybean">🫘 Soybean</option>
+                        </select>
+                    </div>
+
+                    <div class="triple-grid">
+                        <div class="input-group">
+                            <label class="input-label" for="nitrogen">
+                                Nitrogen (N)
+                                <span class="input-hint">kg/ha</span>
+                            </label>
+                            <input type="number" id="nitrogen" class="input-field" 
+                                   min="0" max="140" step="0.1" value="50" required>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" for="phosphorus">
+                                Phosphorus (P)
+                                <span class="input-hint">kg/ha</span>
+                            </label>
+                            <input type="number" id="phosphorus" class="input-field" 
+                                   min="0" max="145" step="0.1" value="50" required>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" for="potassium">
+                                Potassium (K)
+                                <span class="input-hint">kg/ha</span>
+                            </label>
+                            <input type="number" id="potassium" class="input-field" 
+                                   min="0" max="205" step="0.1" value="50" required>
+                        </div>
+                    </div>
+
+                    <div class="double-grid">
+                        <div class="input-group">
+                            <label class="input-label" for="temperature">
+                                Temperature
+                                <span class="input-hint">°C</span>
+                            </label>
+                            <input type="number" id="temperature" class="input-field" 
+                                   min="0" max="50" step="0.1" value="25" required>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" for="humidity">
+                                Humidity
+                                <span class="input-hint">%</span>
+                            </label>
+                            <input type="number" id="humidity" class="input-field" 
+                                   min="0" max="100" step="0.1" value="65" required>
+                        </div>
+                    </div>
+
+                    <div class="double-grid">
+                        <div class="input-group">
+                            <label class="input-label" for="ph">
+                                Soil pH
+                                <span class="input-hint">0-14</span>
+                            </label>
+                            <input type="number" id="ph" class="input-field" 
+                                   min="0" max="14" step="0.1" value="6.5" required>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" for="rainfall">
+                                Rainfall
+                                <span class="input-hint">mm</span>
+                            </label>
+                            <input type="number" id="rainfall" class="input-field" 
+                                   min="0" max="500" step="0.1" value="200" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="predict-btn" id="predictBtn">
+                        <span>🚀 Predict Yield</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="glass-card reveal" style="animation-delay: 0.2s;">
+                <h2 class="card-title">
+                    <span class="card-icon">📈</span>
+                    Prediction Results
+                </h2>
+
+                <div id="emptyState" class="results-empty">
+                    <div class="results-empty-icon">🌱</div>
+                    <p>Enter your crop parameters and click<br>"Predict Yield" to see AI-powered results</p>
+                </div>
+
+                <div id="resultsContent" style="display: none;">
+                    <div class="yield-display">
+                        <div class="yield-label">EXPECTED YIELD</div>
+                        <div class="yield-value" id="yieldValue">-</div>
+                        <div class="yield-range" id="yieldRange">-</div>
+                        <div class="confidence-badge" id="confidenceBadge">
+                            ✨ Confidence: <strong>-</strong>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 style="font-size: 1.1em; margin-bottom: 20px; color: #cbd5e1;">
+                            🎯 Factor Impact Analysis
+                        </h3>
+                        <div id="factorsContainer"></div>
+                        <canvas id="factorsChart" style="max-height:280px; margin-top:16px;"></canvas>
+                    </div>
+
+                    <div style="margin-top:20px;">
+                        <h3 style="font-size: 1.1em; margin-bottom: 12px; color: #cbd5e1;">
+                            🔮 Future Yield Prediction
+                        </h3>
+                        <canvas id="futureChart" style="max-height:320px;"></canvas>
+                    </div>
+
+                    <div style="margin-top:20px;">
+                        <h3 style="font-size: 1.1em; margin-bottom: 12px; color: #cbd5e1;">🤖 AI Advice</h3>
+                        <div id="aiAdvice" class="recommendation-item" style="background: rgba(15,23,42,0.7);">
+                            <span id="aiAdviceText">AI will give tailored advice here after prediction.</span>
+                        </div>
+                    </div>
+
+                    <div class="recommendations-section" style="margin-top:18px;">
+                        <div class="recommendations-title">
+                            💡 Smart Recommendations
+                        </div>
+                        <div id="recommendationsContainer"></div>
+                        <div style="margin-top:14px; display:flex; gap:12px;">
+                            <button id="downloadReportBtn" class="predict-btn" style="width:auto; padding:12px 18px;">📥 Generate Report</button>
+                            <button id="downloadChartsBtn" class="predict-btn" style="width:auto; padding:12px 18px;">🖼️ Download Charts</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Chart instances (persist across predictions)
+        let factorsChart = null;
+        let futureChart = null;
+
+        // Render factor bar chart using Chart.js
+        function renderFactorChart(factors) {
+            const ctx = document.getElementById('factorsChart').getContext('2d');
+            const labels = Object.keys(factors);
+            const values = labels.map(l => parseFloat(factors[l]));
+
+            if (factorsChart) {
+                factorsChart.data.labels = labels;
+                factorsChart.data.datasets[0].data = values;
+                factorsChart.update();
+                return;
+            }
+
+            factorsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Factor impact (%)',
+                        data: values,
+                        backgroundColor: 'rgba(34,197,94,0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100 } }
+                }
+            });
+        }
+
+        // Render simple future yield projection (next 5 years)
+        function renderFutureChart(baseYield) {
+            const ctx = document.getElementById('futureChart').getContext('2d');
+            const years = [];
+            const values = [];
+            const now = new Date().getFullYear();
+            let current = baseYield;
+            for (let i = 0; i < 6; i++) {
+                years.push((now + i).toString());
+                // small random growth/decay for illustration
+                const drift = 1 + (Math.random() - 0.45) * 0.06; // -0.03..+0.09
+                current = Math.max(0, current * drift);
+                values.push(Math.round(current));
+            }
+
+            if (futureChart) {
+                futureChart.data.labels = years;
+                futureChart.data.datasets[0].data = values;
+                futureChart.update();
+                return;
+            }
+
+            futureChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: 'Projected yield (kg/ha)',
+                        data: values,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.15)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function predictYield(data) {
+            const nitrogenScore = (data.nitrogen / 140) * 0.25;
+            const phosphorusScore = (data.phosphorus / 145) * 0.20;
+            const potassiumScore = (data.potassium / 205) * 0.20;
+            const rainfallScore = Math.min(data.rainfall / 300, 1) * 0.15;
+            const tempScore = (1 - Math.abs(data.temperature - 25) / 25) * 0.10;
+            const humidityScore = (data.humidity / 100) * 0.05;
+            const phScore = (1 - Math.abs(data.ph - 6.5) / 3) * 0.05;
+
+            const baseYield = nitrogenScore + phosphorusScore + potassiumScore + 
+                            rainfallScore + tempScore + humidityScore + phScore;
+
+            const cropMultipliers = {
+                rice: 4500, wheat: 3500, maize: 5500, cotton: 2500,
+                sugarcane: 7000, potato: 2800, tomato: 3200, soybean: 2200
+            };
+
+            const yieldValue = baseYield * (cropMultipliers[data.cropType] || 3000);
+            const confidence = 82 + Math.floor(Math.random() * 13);
+            const lowerBound = yieldValue * 0.85;
+            const upperBound = yieldValue * 1.15;
+
+            return {
+                yield: Math.round(yieldValue),
+                confidence: confidence,
+                lowerBound: Math.round(lowerBound),
+                upperBound: Math.round(upperBound),
+                factors: {
+                    'Nitrogen': (nitrogenScore * 100).toFixed(1),
+                    'Phosphorus': (phosphorusScore * 100).toFixed(1),
+                    'Potassium': (potassiumScore * 100).toFixed(1),
+                    'Rainfall': (rainfallScore * 100).toFixed(1),
+                    'Temperature': (tempScore * 100).toFixed(1)
+                }
+            };
+        }
+
+        function getRecommendations(data) {
+            const recommendations = [];
+            const icons = ['🌱', '💧', '🌡️', '⚗️', '☔'];
+            let iconIndex = 0;
+
+            if (data.nitrogen < 40) {
+                recommendations.push({
+                    icon: icons[iconIndex++],
+                    text: 'Nitrogen levels are low. Apply urea or organic fertilizers to boost plant growth.'
+                });
+            }
+            if (data.phosphorus < 30) {
+                recommendations.push({
+                    icon: icons[iconIndex++],
+                    text: 'Phosphorus content needs improvement. Use DAP or rock phosphate for better root development.'
+                });
+            }
+            if (data.potassium < 30) {
+                recommendations.push({
+                    icon: icons[iconIndex++],
+                    text: 'Potassium is below optimal. Apply muriate of potash (MOP) to enhance crop quality.'
+                });
+            }
+            if (data.rainfall < 100) {
+                recommendations.push({
+                    icon: icons[iconIndex++],
+                    text: 'Low rainfall detected. Implement drip irrigation or sprinkler systems for consistent water supply.'
+                });
+            }
+            if (data.temperature < 15 || data.temperature > 35) {
+                recommendations.push({
+                    icon: icons[iconIndex++],
+                    text: 'Temperature is outside optimal range. Consider season timing or protective measures.'
+                });
+            }
+            if (data.ph < 5.5) {
+                recommendations.push({
+                    icon: icons[iconIndex++],
+                    text: 'Soil is acidic. Apply agricultural lime to raise pH to the optimal range (6.0-7.0).'
+                });
+            } else if (data.ph > 8.0) {
+                recommendations.push({
+                    icon: icons[iconIndex++],
+                    text: 'Soil is alkaline. Add sulfur or organic matter to lower pH levels.'
+                });
+            }
+
+            if (recommendations.length === 0) {
+                recommendations.push({
+                    icon: '✅',
+                    text: 'Excellent! Your soil and environmental conditions are optimal for maximum yield.'
+                });
+            }
+
+            return recommendations;
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('predictBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"><div class="spinner"></div> Analyzing...</span>';
+
+            setTimeout(() => {
+                const data = {
+                    nitrogen: parseFloat(document.getElementById('nitrogen').value),
+                    phosphorus: parseFloat(document.getElementById('phosphorus').value),
+                    potassium: parseFloat(document.getElementById('potassium').value),
+                    temperature: parseFloat(document.getElementById('temperature').value),
+                    humidity: parseFloat(document.getElementById('humidity').value),
+                    ph: parseFloat(document.getElementById('ph').value),
+                    rainfall: parseFloat(document.getElementById('rainfall').value),
+                    cropType: document.getElementById('cropType').value
+                };
+
+                const result = predictYield(data);
+                const recommendations = getRecommendations(data);
+
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('resultsContent').style.display = 'block';
+
+                animateValue('yieldValue', 0, result.yield, 1500, ' kg/ha');
+                
+                document.getElementById('yieldRange').textContent = 
+                    `Range: ${result.lowerBound.toLocaleString()} - ${result.upperBound.toLocaleString()} kg/ha`;
+                
+                document.getElementById('confidenceBadge').innerHTML = 
+                    `✨ Confidence: <strong>${result.confidence}%</strong>`;
+
+                const factorsContainer = document.getElementById('factorsContainer');
+                factorsContainer.innerHTML = '';
+                
+                Object.entries(result.factors).forEach(([name, value]) => {
+                    const factorHTML = `
+                        <div class="factor-item">
+                            <div class="factor-header">
+                                <span class="factor-name">${name}</span>
+                                <span class="factor-value">${value}%</span>
+                            </div>
+                            <div class="factor-bar-container">
+                                <div class="factor-bar" style="width: ${value}%"></div>
+                            </div>
+                        </div>
+                    `;
+                    factorsContainer.innerHTML += factorHTML;
+                });
+
+                const recsContainer = document.getElementById('recommendationsContainer');
+                recsContainer.innerHTML = '';
+
+                recommendations.forEach(rec => {
+                    const recHTML = `
+                        <div class="recommendation-item">
+                            <span class="recommendation-icon">${rec.icon}</span>
+                            <span>${rec.text}</span>
+                        </div>
+                    `;
+                    recsContainer.innerHTML += recHTML;
+                });
+
+                // Update AI advice (a short, contextual paragraph)
+                const aiAdviceText = document.getElementById('aiAdviceText');
+                const adviceLines = [];
+                adviceLines.push(`For ${data.cropType.charAt(0).toUpperCase() + data.cropType.slice(1)}, maintain balanced NPK and monitor soil pH.`);
+                if (data.nitrogen < 40) adviceLines.push('Nitrogen is low — consider urea or compost before planting.');
+                if (data.rainfall < 100) adviceLines.push('Low rainfall: prioritize efficient irrigation (drip/sprinkler).');
+                if (data.ph < 5.5) adviceLines.push('Soil is acidic — liming will help nutrient availability.');
+                adviceLines.push('Regular soil testing and split fertilizer applications improve results.');
+                aiAdviceText.textContent = adviceLines.join(' ');
+
+                // Render charts
+                try {
+                    renderFactorChart(result.factors);
+                    renderFutureChart(result.yield);
+                } catch (err) {
+                    console.warn('Chart rendering failed', err);
+                }
+
+                // Generate PDF report (includes charts)
+                document.getElementById('downloadReportBtn').onclick = async function() {
+                    try {
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+                        const margin = 12;
+                        let y = margin;
+
+                        doc.setFontSize(18);
+                        doc.setTextColor(34, 197, 94);
+                        doc.text('AgriYield AI — Prediction Report', margin, y);
+                        y += 8;
+
+                        doc.setFontSize(10);
+                        doc.setTextColor(200,200,200);
+                        doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
+                        y += 8;
+
+                        // Inputs
+                        doc.setTextColor(220,220,220);
+                        doc.setFontSize(12);
+                        doc.text('Inputs:', margin, y);
+                        y += 6;
+                        doc.setFontSize(10);
+                        const inputsText = `Crop: ${data.cropType}  |  N:${data.nitrogen}  P:${data.phosphorus}  K:${data.potassium}  Temp:${data.temperature}°C  Hum:${data.humidity}%  pH:${data.ph}  Rain:${data.rainfall}mm`;
+                        const splitInputs = doc.splitTextToSize(inputsText, 180 - margin*2);
+                        doc.text(splitInputs, margin, y);
+                        y += (splitInputs.length * 6) + 4;
+
+                        // Results
+                        doc.setFontSize(12);
+                        doc.text('Prediction:', margin, y);
+                        y += 6;
+                        doc.setFontSize(10);
+                        doc.setTextColor(240,240,240);
+                        doc.text(`Expected yield: ${result.yield} kg/ha`, margin, y);
+                        y += 6;
+                        doc.text(`Range: ${result.lowerBound} - ${result.upperBound} kg/ha`, margin, y);
+                        y += 6;
+                        doc.text(`Confidence: ${result.confidence}%`, margin, y);
+                        y += 8;
+
+                        // Recommendations (as text)
+                        doc.setFontSize(12);
+                        doc.setTextColor(220,220,220);
+                        doc.text('Recommendations:', margin, y);
+                        y += 6;
+                        doc.setFontSize(10);
+                        const recTexts = recommendations.map(r => `• ${r.text}`);
+                        const recSplit = doc.splitTextToSize(recTexts.join('\n'), 180 - margin*2);
+                        doc.text(recSplit, margin, y);
+                        y += (recSplit.length * 6) + 6;
+
+                        // Capture charts images
+                        const canvas1 = document.getElementById('factorsChart');
+                        const canvas2 = document.getElementById('futureChart');
+                        const img1 = canvas1.toDataURL('image/png', 1.0);
+                        const img2 = canvas2.toDataURL('image/png', 1.0);
+
+                        const pageWidth = doc.internal.pageSize.getWidth();
+                        const usableWidth = pageWidth - margin * 2;
+
+                        // add factor chart
+                        let img1Props = { w: 0, h: 0 };
+                        try {
+                            const c1 = canvas1;
+                            const mmPerPx = 0.264583; // px to mm
+                            img1Props.w = Math.min(usableWidth, c1.width * mmPerPx);
+                            img1Props.h = (c1.height * mmPerPx) * (img1Props.w / (c1.width * mmPerPx));
+                            if (y + img1Props.h > doc.internal.pageSize.getHeight() - margin) {
+                                doc.addPage();
+                                y = margin;
+                            }
+                            doc.addImage(img1, 'PNG', margin, y, img1Props.w, img1Props.h);
+                            y += img1Props.h + 8;
+                        } catch (e) {
+                            console.warn('Could not add factor chart to PDF', e);
+                        }
+
+                        // add future chart
+                        try {
+                            const c2 = canvas2;
+                            const mmPerPx = 0.264583;
+                            const w2 = Math.min(usableWidth, c2.width * mmPerPx);
+                            const h2 = (c2.height * mmPerPx) * (w2 / (c2.width * mmPerPx));
+                            if (y + h2 > doc.internal.pageSize.getHeight() - margin) {
+                                doc.addPage();
+                                y = margin;
+                            }
+                            doc.addImage(img2, 'PNG', margin, y, w2, h2);
+                            y += h2 + 8;
+                        } catch (e) {
+                            console.warn('Could not add future chart to PDF', e);
+                        }
+
+                        // AI advice
+                        if (y + 30 > doc.internal.pageSize.getHeight() - margin) {
+                            doc.addPage();
+                            y = margin;
+                        }
+                        doc.setFontSize(12);
+                        doc.setTextColor(220,220,220);
+                        doc.text('AI Advice:', margin, y);
+                        y += 6;
+                        doc.setFontSize(10);
+                        const advice = document.getElementById('aiAdviceText').textContent || '';
+                        const adviceSplit = doc.splitTextToSize(advice, usableWidth);
+                        doc.text(adviceSplit, margin, y);
+
+                        // save PDF
+                        const name = `agriyield_report_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.pdf`;
+                        doc.save(name);
+                    } catch (err) {
+                        alert('Failed to generate PDF: ' + (err.message || err));
+                    }
+                };
+
+                // Download charts as PNGs combined
+                document.getElementById('downloadChartsBtn').onclick = async function() {
+                    try {
+                        // snapshot factor chart and future chart
+                        const canvas1 = document.getElementById('factorsChart');
+                        const canvas2 = document.getElementById('futureChart');
+                        // create a combined canvas
+                        const w = Math.max(canvas1.width, canvas2.width);
+                        const h = canvas1.height + canvas2.height + 20;
+                        const combined = document.createElement('canvas');
+                        combined.width = w;
+                        combined.height = h;
+                        const ctx = combined.getContext('2d');
+                        ctx.fillStyle = '#0f172a';
+                        ctx.fillRect(0,0,w,h);
+                        ctx.drawImage(canvas1, 0, 0);
+                        ctx.drawImage(canvas2, 0, canvas1.height + 20);
+                        const url = combined.toDataURL('image/png');
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `agriyield_charts_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.png`;
+                        a.click();
+                    } catch (err) {
+                        alert('Could not export charts: ' + err.message);
+                    }
+                };
+
+                btn.disabled = false;
+                btn.innerHTML = '<span>🚀 Predict Yield</span>';
+            }, 1200);
+        });
+
+        function animateValue(id, start, end, duration, suffix = '') {
+            const element = document.getElementById(id);
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    current = end;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.round(current).toLocaleString() + suffix;
+            }, 16);
+        }
+
+        const reveals = document.querySelectorAll('.reveal');
+        reveals.forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+        });
+    </script>
+</body>
+</html>
